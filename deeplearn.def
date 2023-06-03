@@ -1,0 +1,29 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%labels
+
+AUTHOR Mohammed E. Amer
+
+%files
+
+requirements.txt .
+
+%post
+
+apt update
+apt install -y nvidia-driver-470
+apt install -y python3-pip
+
+pip3 install -r requirements.txt
+
+
+%runscript
+
+cd /usr/src/
+./run.sh "$@"
+
+%startscript
+
+cd /usr/src/
+./run.sh "$@"
