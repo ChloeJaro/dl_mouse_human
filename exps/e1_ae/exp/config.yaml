@@ -5,7 +5,7 @@ trainer:
   max_epochs: 200
   accelerator: auto
   devices: 1
-  deterministic: 'warn'
+  deterministic: "warn"
   fast_dev_run: false
   strategy: auto
   num_nodes: 1
@@ -51,11 +51,14 @@ model:
     - 200
   class_out_channels:
   activation:
-    name: 'ReLU'
+    name: "ReLU"
+    init_args: {}
+  norm_layer:
+    name: "instance" # instance | batch | none
     init_args: {}
   dropout: 0.0
   optimizer:
-    name: 'Adam'
+    name: "Adam"
     init_args: {}
   loss:
     class_weight: 1.
@@ -63,10 +66,10 @@ model:
     abs_weight: 1.
 
 hydra:
-    run:
-        dir: .
-    output_subdir: null
+  run:
+    dir: .
+  output_subdir: null
 
 defaults:
-    - override hydra/job_logging: disabled
-    - override hydra/hydra_logging: disabled
+  - override hydra/job_logging: disabled
+  - override hydra/hydra_logging: disabled

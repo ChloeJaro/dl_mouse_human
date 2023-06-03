@@ -6,13 +6,31 @@ import torch.nn.functional as F
 import lightning.pytorch as pl
 import torchmetrics
 
+NORM_LAYER_DICT = {
+    "instance": nn.InstanceNorm1d,
+    "batch": nn.BatchNorm1d,
+    "none": nn.Identity,
+}
+
 
 class MLP(nn.Module):
-    def __init__(self, in_channels: int, hidden_layers: list, activation: dict, dropout: float):
+    def __init__(
+        self,
+        in_channels: int,
+        hidden_layers: list,
+        activation: dict,
+        norm_layer: dict,
+        dropout: float,
+    ):
         super().__init__()
+
+        assert norm_layer["name"] in ["instance", "batch", "none"]
 
         activation_clz = getattr(torch.nn, activation["name"])
         activation_clz = functools.partial(activation_clz, **activation["init_args"])
+
+        norm_layer_clz = NORM_LAYER_DICT[norm_layer["name"]]
+        norm_layer_clz = functools.partial(norm_layer_clz, **norm_layer["init_args"])
 
         self.mlp = []
 
@@ -22,6 +40,7 @@ class MLP(nn.Module):
             self.mlp.extend(
                 [
                     nn.Linear(prev_channels, ch),
+                    norm_layer_clz(ch),
                     activation_clz(),
                     nn.Dropout(p=dropout),
                 ]
@@ -44,6 +63,7 @@ class LitNet(pl.LightningModule):
         class_layers: list,
         class_out_channels: int,
         activation: dict,
+        norm_layer: dict,
         dropout: float,
         optimizer: dict,
         loss: dict,
@@ -61,6 +81,7 @@ class LitNet(pl.LightningModule):
             in_channels=in_channels,
             hidden_layers=encoder_layers,
             activation=activation,
+            norm_layer=norm_layer,
             dropout=dropout,
         )
 
@@ -68,6 +89,7 @@ class LitNet(pl.LightningModule):
             in_channels=encoder_layers[-1],
             hidden_layers=decoder_layers,
             activation=activation,
+            norm_layer=norm_layer,
             dropout=dropout,
         )
         self.decoder = nn.Sequential(
@@ -78,6 +100,7 @@ class LitNet(pl.LightningModule):
             in_channels=encoder_layers[-1],
             hidden_layers=class_layers,
             activation=activation,
+            norm_layer=norm_layer,
             dropout=dropout,
         )
         self.classifier = nn.Sequential(
