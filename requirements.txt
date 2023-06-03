@@ -1,0 +1,24 @@
+numpy
+openslide-python
+pillow
+opencv-python
+torch
+torchvision
+# torchgeometry
+# scikit-learn
+# scipy
+pandas
+# tables
+# pyyaml
+# tqdm
+# nibabel==4.0.2
+tensorboard
+future
+# hyperopt
+# hydra-core
+# fslpy
+# matplotlib
+lightning
+pytorch-lightning[extra]
+torchmetrics
+ray
