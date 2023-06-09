@@ -73,9 +73,6 @@ class LitNet(pl.LightningModule):
         self.save_hyperparameters()
 
         self.train_loss = torchmetrics.MeanMetric()
-        self.val_acc = torchmetrics.Accuracy(
-            task="multiclass", num_classes=class_out_channels, average="micro"
-        )
 
         self.encoder = MLP(
             in_channels=in_channels,
@@ -146,22 +143,6 @@ class LitNet(pl.LightningModule):
         self.log("train_loss", loss, prog_bar=True, sync_dist=True)
 
         self.train_loss.reset()
-
-    def test_step(self, batch, batch_idx):
-        # this is the test loop
-        x, y = batch
-        x = x.view(x.size(0), -1)
-        _, _, class_o = self(x)
-
-        self.val_acc(class_o, y)
-
-    def on_test_end(self):
-        val_acc = self.val_acc.compute()
-
-        logger = self.logger.experiment
-        logger.add_scalar("val_acc", val_acc)
-
-        self.val_acc.reset()
 
     def predict_step(self, batch, batch_idx):
         x, _ = batch
