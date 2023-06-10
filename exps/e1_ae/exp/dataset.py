@@ -48,7 +48,8 @@ class MouseHumanDataModule(pl.LightningDataModule):
         self,
         mouse_voxel_data_path: str,
         human_voxel_data_path: str,
-        labelcol: str,
+        mouse_labelcol: str,
+        human_labelcol: str,
         train_bsize: int,
         valid_bsize: int,
         num_workers: int,
@@ -57,7 +58,8 @@ class MouseHumanDataModule(pl.LightningDataModule):
 
         self.mouse_voxel_data_path = mouse_voxel_data_path
         self.human_voxel_data_path = human_voxel_data_path
-        self.labelcol = labelcol
+        self.mouse_labelcol = mouse_labelcol
+        self.human_labelcol = human_labelcol
         self.train_bsize = train_bsize
         self.valid_bsize = valid_bsize
         self.num_workers = num_workers
@@ -67,7 +69,7 @@ class MouseHumanDataModule(pl.LightningDataModule):
         self.train_ds = GeneDataset(
             data_path=self.mouse_voxel_data_path,
             intersct_data_path=self.human_voxel_data_path,
-            labelcol=self.labelcol,
+            labelcol=self.mouse_labelcol,
         )
 
     def train_dataloader(self):
@@ -77,3 +79,32 @@ class MouseHumanDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=True,
         )
+
+
+def encode(
+    trainer, ckpt_path, data_path, intersct_data_path, labelcol,
+    output_fie_path, bsize, num_workers
+):
+    
+    dataset = GeneDataset(
+        data_path=data_path,
+        intersct_data_path=intersct_data_path,
+        labelcol=labelcol,
+    )
+
+    dataloader = DataLoader(
+        dataset, batch_size=bsize, num_workers=num_workers, shuffle=False
+    )
+
+    preds = trainer.predict(dataloaders=dataloader, ckpt_path=ckpt_path)
+    preds = torch.cat(preds, dim=0)
+
+    preds = preds.detach().cpu().numpy()
+
+    preds_df = pd.DataFrame(preds)
+
+    data_df = pd.read_csv(data_path)
+
+    preds_df['region'] = data_df[labelcol]
+
+    preds_df.to_csv(output_fie_path, index=False)
