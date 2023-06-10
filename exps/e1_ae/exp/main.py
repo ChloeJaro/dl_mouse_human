@@ -19,10 +19,14 @@ RESULTS_PATH = os.path.join(THIS_PATH, "../exp-results/")
 def main(cfg):
     tag = cfg["tag"]
 
-    exp_root = os.path.join(RESULTS_PATH, tag)
-    os.makedirs(exp_root)
+    fast_dev_run = cfg["trainer"]["fast_dev_run"]
 
-    save_config(cfg, path=os.path.join(exp_root, "config.yaml"))
+    exp_root = os.path.join(RESULTS_PATH, tag)
+
+    if not fast_dev_run:
+        os.makedirs(exp_root)
+
+        save_config(cfg, path=os.path.join(exp_root, "config.yaml"))
 
     cfg = OmegaConf.to_container(cfg)
 
@@ -42,6 +46,8 @@ def main(cfg):
     )
 
     trainer.fit(model=model, datamodule=data)
+
+    if fast_dev_run: return
 
     ckpt_path = os.path.join(exp_root, "last.ckpt")
 
