@@ -73,6 +73,8 @@ class LitNet(pl.LightningModule):
         self.save_hyperparameters()
 
         self.train_loss = torchmetrics.MeanMetric()
+        self.train_acc = torchmetrics.Accuracy(
+            task='multiclass', num_classes=class_out_channels, average='micro')
 
         self.encoder = MLP(
             in_channels=in_channels,
@@ -134,15 +136,19 @@ class LitNet(pl.LightningModule):
             loss += torch.abs(latent).sum(dim=1).mean(dim=0)
 
         self.train_loss(loss, x.size(0))
+        self.train_acc(class_o, y)
 
         return loss
 
     def on_train_epoch_end(self):
         loss = self.train_loss.compute()
+        train_acc = self.train_acc.compute()
 
-        self.log("train_loss", loss, prog_bar=True, sync_dist=True)
+        self.log("train_loss", loss, prog_bar=True)
+        self.log('train_acc', train_acc, prog_bar=True)
 
         self.train_loss.reset()
+        self.train_acc.reset()
 
     def predict_step(self, batch, batch_idx):
         x, _ = batch
