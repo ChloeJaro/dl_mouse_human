@@ -66,10 +66,10 @@ model:
     abs_weight: 1.
 
 data:
-  mouse_voxel_data_path: data/mouse_human/exp-data/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
-  human_voxel_data_path: data/mouse_human/exp-data/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv
-  mouse_labelcol: region67
-  human_labelcol: region88
+  mouse_voxel_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
+  human_voxel_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv
+  mouse_labelcol: Region67
+  human_labelcol: Region88
   train_bsize: 64
   valid_bsize: 64
   num_workers: 4
