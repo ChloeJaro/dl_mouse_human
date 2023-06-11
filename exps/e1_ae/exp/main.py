@@ -12,7 +12,7 @@ from dataset import MouseHumanDataModule, GeneDataset, encode
 from utils import save_config
 
 THIS_PATH = os.path.realpath(os.path.dirname(__file__))
-RESULTS_PATH = os.path.join(THIS_PATH, "../exp-results/")
+RESULTS_PATH = os.path.join(THIS_PATH, "../results.ign/")
 
 
 @hydra.main(version_base=None, config_path=".", config_name="config")

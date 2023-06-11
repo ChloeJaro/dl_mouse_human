@@ -16,11 +16,6 @@
 **/*.ini
 
 **/.env
-**/*exp-results
-**/*exp-data
-**/*exp-test
-**/*test.ipynb
-**/*test.sh
 **/*.ign
 **/*.ign.ipynb
 **/*.ign.sh
