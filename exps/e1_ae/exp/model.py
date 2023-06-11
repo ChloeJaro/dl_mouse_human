@@ -24,7 +24,7 @@ class MLP(nn.Module):
     ):
         super().__init__()
 
-        assert norm_layer["name"] in ["instance", "batch", "none"]
+        assert norm_layer["name"] in NORM_LAYER_DICT
 
         activation_clz = getattr(torch.nn, activation["name"])
         activation_clz = functools.partial(activation_clz, **activation["init_args"])
@@ -74,7 +74,8 @@ class LitNet(pl.LightningModule):
 
         self.train_loss = torchmetrics.MeanMetric()
         self.train_acc = torchmetrics.Accuracy(
-            task='multiclass', num_classes=class_out_channels, average='micro')
+            task="multiclass", num_classes=class_out_channels, average="micro"
+        )
 
         self.encoder = MLP(
             in_channels=in_channels,
@@ -124,16 +125,16 @@ class LitNet(pl.LightningModule):
 
         class_weight = self.hparams.loss["class_weight"]
         reconst_weight = self.hparams.loss["reconst_weight"]
-        abs_weight = self.hparams.loss["abs_weight"]
+        l1_weight = self.hparams.loss["l1_weight"]
 
         if class_weight > 0:
-            loss += F.cross_entropy(class_o, y)
+            loss += class_weight*F.cross_entropy(class_o, y)
 
         if reconst_weight > 0:
-            loss += F.mse_loss(decoder_o, x, reduction="none").sum(dim=1).mean(dim=0)
+            loss += reconst_weight*F.mse_loss(decoder_o, x, reduction="none").sum(dim=1).mean(dim=0)
 
-        if abs_weight > 0:
-            loss += torch.abs(latent).sum(dim=1).mean(dim=0)
+        if l1_weight > 0:
+            loss += l1_weight*torch.abs(latent).sum(dim=1).mean(dim=0)
 
         self.train_loss(loss, x.size(0))
         self.train_acc(class_o, y)
@@ -145,7 +146,7 @@ class LitNet(pl.LightningModule):
         train_acc = self.train_acc.compute()
 
         self.log("train_loss", loss, prog_bar=True)
-        self.log('train_acc', train_acc, prog_bar=True)
+        self.log("train_acc", train_acc, prog_bar=True)
 
         self.train_loss.reset()
         self.train_acc.reset()

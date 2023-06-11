@@ -63,7 +63,7 @@ model:
   loss:
     class_weight: 1.
     reconst_weight: 1.
-    abs_weight: 1.
+    l1_weight: 1.
 
 data:
   mouse_voxel_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv

@@ -47,7 +47,8 @@ def main(cfg):
 
     trainer.fit(model=model, datamodule=data)
 
-    if fast_dev_run: return
+    if fast_dev_run:
+        return
 
     ckpt_path = os.path.join(exp_root, "last.ckpt")
 

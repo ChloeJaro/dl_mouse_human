@@ -5,7 +5,6 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 import pandas as pd
-import numpy as np
 from skorch.helper import DataFrameTransformer
 
 
@@ -82,10 +81,15 @@ class MouseHumanDataModule(pl.LightningDataModule):
 
 
 def encode(
-    trainer, ckpt_path, data_path, intersct_data_path, labelcol,
-    output_fie_path, bsize, num_workers
+    trainer,
+    ckpt_path,
+    data_path,
+    intersct_data_path,
+    labelcol,
+    output_file_path,
+    bsize,
+    num_workers,
 ):
-    
     dataset = GeneDataset(
         data_path=data_path,
         intersct_data_path=intersct_data_path,
@@ -105,6 +109,6 @@ def encode(
 
     data_df = pd.read_csv(data_path)
 
-    preds_df['region'] = data_df[labelcol]
+    preds_df["region"] = data_df[labelcol]
 
-    preds_df.to_csv(output_fie_path, index=False)
+    preds_df.to_csv(output_file_path, index=False)
