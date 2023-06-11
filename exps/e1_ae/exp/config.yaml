@@ -39,7 +39,7 @@ trainer:
   sync_batchnorm: false
   reload_dataloaders_every_n_epochs: 0
 model:
-  in_channels:
+  in_channels: 2835
   encoder_layers:
     - 200
     - 200
@@ -49,7 +49,7 @@ model:
   class_layers:
     - 200
     - 200
-  class_out_channels:
+  class_out_channels: 67
   activation:
     name: "ReLU"
     init_args: {}
