@@ -19,3 +19,4 @@
 **/*.ign
 **/*.ign.ipynb
 **/*.ign.sh
+**/*.ign.jl
