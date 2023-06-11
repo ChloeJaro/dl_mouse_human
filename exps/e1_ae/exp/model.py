@@ -131,10 +131,10 @@ class LitNet(pl.LightningModule):
             loss += class_weight*F.cross_entropy(class_o, y)
 
         if reconst_weight > 0:
-            loss += reconst_weight*F.mse_loss(decoder_o, x, reduction="none").sum(dim=1).mean(dim=0)
+            loss += reconst_weight*F.mse_loss(decoder_o, x)
 
         if l1_weight > 0:
-            loss += l1_weight*torch.abs(latent).sum(dim=1).mean(dim=0)
+            loss += l1_weight*torch.abs(latent).mean()
 
         self.train_loss(loss, x.size(0))
         self.train_acc(class_o, y)
