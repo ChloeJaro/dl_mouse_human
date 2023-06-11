@@ -11,3 +11,4 @@ hydra-core
 lightning
 pytorch-lightning[extra]
 torchmetrics
+skorch
