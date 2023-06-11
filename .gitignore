@@ -20,3 +20,4 @@
 **/*.ign.ipynb
 **/*.ign.sh
 **/*.ign.jl
+**/*nohup.out
