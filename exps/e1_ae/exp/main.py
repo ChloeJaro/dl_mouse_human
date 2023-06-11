@@ -61,7 +61,7 @@ def main(cfg):
         data_path=cfg["data"]["mouse_voxel_data_path"],
         intersct_data_path=cfg["data"]["human_voxel_data_path"],
         labelcol=cfg["data"]["mouse_labelcol"],
-        output_fie_path=os.path.join(encode_path, "mouse_voxel_encoding.csv"),
+        output_file_path=os.path.join(encode_path, "mouse_voxel_encoding.csv"),
         **cfg["encode"]
     )
 
@@ -71,7 +71,7 @@ def main(cfg):
         data_path=cfg["data"]["human_voxel_data_path"],
         intersct_data_path=cfg["data"]["mouse_voxel_data_path"],
         labelcol=cfg["data"]["human_labelcol"],
-        output_fie_path=os.path.join(encode_path, "human_voxel_encoding.csv"),
+        output_file_path=os.path.join(encode_path, "human_voxel_encoding.csv"),
         **cfg["encode"]
     )
 
