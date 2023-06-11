@@ -6,7 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=32g
-#SBATCH --gpus-per-node=2 
+#SBATCH --gpus-per-node=1
 #SBATCH --qos=img
 
 srun ./singularity_run.sh $@
