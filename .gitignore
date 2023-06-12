@@ -17,7 +17,5 @@
 
 **/.env
 **/*.ign
-**/*.ign.ipynb
-**/*.ign.sh
-**/*.ign.jl
-**/*nohup.out
+**/*.ign.*
+**/*.out
