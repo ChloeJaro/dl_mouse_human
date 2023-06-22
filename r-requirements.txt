@@ -1,0 +1,9 @@
+r-tidyverse
+# r-grid
+r-gridExtra
+r-pheatmap
+# r-ggplotify # conda-forge
+# r-ggnewscale # conda-forge
+# r-RMINC
+r-data.tree
+r-RColorBrewer
