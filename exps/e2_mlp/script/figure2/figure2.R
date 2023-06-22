@@ -12,11 +12,9 @@ suppressPackageStartupMessages(library(gridExtra))
 suppressPackageStartupMessages(library(pheatmap))
 suppressPackageStartupMessages(library(ggplotify))
 suppressPackageStartupMessages(library(ggnewscale))
-suppressPackageStartupMessages(library(RMINC))
 suppressPackageStartupMessages(library(data.tree))
 suppressPackageStartupMessages(library(RColorBrewer))
 
-print(getwd())
 
 # ## ----functions----------------------------------------------------------------
 # #Functions

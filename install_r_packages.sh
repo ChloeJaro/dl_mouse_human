@@ -1,4 +1,4 @@
-conda activate r_env
+source /root/miniconda3/bin/activate r_env
 
 conda install -y --file r-requirements.txt
 

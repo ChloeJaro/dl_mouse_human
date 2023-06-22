@@ -18,8 +18,8 @@ install_r_packages.R .
 
 apt update
 
-apt install -y build-essential wget
-apt install -y libminc2-5.2.0 libminc-dev minc-tools
+apt install -y build-essential cmake wget
+apt install -y libminc2-5.2.0 libminc-dev minc-tools zlib1g-dev
 
 wget -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 
@@ -32,11 +32,11 @@ conda create -y -n r_env r-essentials r-base
 
 bash install_r_packages.sh
 
-apt install -y nvidia-driver-470
-apt install -y python3-pip
+#apt install -y nvidia-driver-470
+#apt install -y python3-pip
 
 
-pip3 install -r requirements.txt
+#pip3 install -r requirements.txt
 
 
 %runscript
