@@ -27,7 +27,7 @@ args = commandArgs(trailingOnly=TRUE)
 ## ----import-basic-------------------------------------------------------------
 #Import data
 dfExprMouse <- as_tibble(data.table::fread("data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled.csv", header = TRUE))
-dfExprHuman <- as_tibble(data.table::fread("data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled.csv", header = TRUE))
+dfExprHuman <- as_tibble(data.table::fread("data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv", header = TRUE))
 
 #Extract labels from data frames
 dfLabelsMouse <- dfExprMouse %>% select(contains("Region"))
