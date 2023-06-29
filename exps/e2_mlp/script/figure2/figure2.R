@@ -69,6 +69,10 @@ pruneAnatTree(treeHuman,
 #Path to MLP files
 pathMLP <- args[[1]]
 
+setwd(pathMLP)
+
+pathMLP <- '.'
+
 #Files containing latent space representations
 filesMLP_Mouse <- list.files(pathMLP, pattern = "mouse_region_encoding.csv", full.names = T, recursive = TRUE)
 filesMLP_Human <- list.files(pathMLP, pattern = "human_region_encoding.csv", full.names = T, recursive = TRUE)
