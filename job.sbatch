@@ -9,4 +9,4 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --qos=img
 
-srun ./singularity_run.sh $@
+srun ./singularity_python_run.sh $@
