@@ -68,6 +68,8 @@ model:
 data:
   mouse_voxel_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
   human_voxel_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv
+  mouse_region_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_ROI_Region67_scaled.csv
+  human_region_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_ROI_Region88_scaled.csv
   mouse_labelcol: Region67
   human_labelcol: Region88
   train_bsize: 64

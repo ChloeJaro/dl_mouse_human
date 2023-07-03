@@ -8,7 +8,7 @@ from omegaconf import OmegaConf
 import hydra
 
 from model import LitNet
-from dataset import MouseHumanDataModule, GeneDataset, encode
+from dataset import MouseHumanDataModule, encode
 from utils import save_config
 
 THIS_PATH = os.path.realpath(os.path.dirname(__file__))
@@ -55,25 +55,36 @@ def main(cfg):
     encode_path = os.path.join(exp_root, "encoding")
     os.makedirs(encode_path)
 
-    encode(
-        trainer=trainer,
-        ckpt_path=ckpt_path,
-        data_path=cfg["data"]["mouse_voxel_data_path"],
-        intersct_data_path=cfg["data"]["human_voxel_data_path"],
-        labelcol=cfg["data"]["mouse_labelcol"],
-        output_file_path=os.path.join(encode_path, "mouse_voxel_encoding.csv"),
-        **cfg["encode"]
-    )
+    encode_recipes = [
+        {
+            'data_path': cfg["data"]["mouse_voxel_data_path"],
+            'intersct_data_path': cfg["data"]["human_voxel_data_path"],
+            'labelcol': cfg["data"]["mouse_labelcol"],
+            'output_file_path': os.path.join(encode_path, "mouse_voxel_encoding.csv"),
+        },
+        {
+            'data_path': cfg["data"]["human_voxel_data_path"],
+            'intersct_data_path': cfg["data"]["mouse_voxel_data_path"],
+            'labelcol': cfg["data"]["human_labelcol"],
+            'output_file_path': os.path.join(encode_path, "human_voxel_encoding.csv"),
+        },
+        {
+            'data_path': cfg["data"]["mouse_region_data_path"],
+            'intersct_data_path': cfg["data"]["human_voxel_data_path"],
+            'labelcol': 'Region',
+            'output_file_path': os.path.join(encode_path, "mouse_region_encoding.csv"),
+        },
+        {
+            'data_path': cfg["data"]["human_region_data_path"],
+            'intersct_data_path': cfg["data"]["mouse_voxel_data_path"],
+            'labelcol': 'Region',
+            'output_file_path': os.path.join(encode_path, "human_region_encoding.csv"),
+        },
+    ]
 
-    encode(
-        trainer=trainer,
-        ckpt_path=ckpt_path,
-        data_path=cfg["data"]["human_voxel_data_path"],
-        intersct_data_path=cfg["data"]["mouse_voxel_data_path"],
-        labelcol=cfg["data"]["human_labelcol"],
-        output_file_path=os.path.join(encode_path, "human_voxel_encoding.csv"),
-        **cfg["encode"]
-    )
+    for enc_recipe in encode_recipes:
+        encode(trainer=trainer, ckpt_path=ckpt_path,
+               **enc_recipe, **cfg['encode'])
 
 
 if __name__ == "__main__":

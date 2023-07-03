@@ -45,6 +45,8 @@ class MouseHumanDataModule(pl.LightningDataModule):
         self,
         mouse_voxel_data_path: str,
         human_voxel_data_path: str,
+        mouse_region_data_path: str,
+        human_region_data_path: str,
         mouse_labelcol: str,
         human_labelcol: str,
         train_bsize: int,
@@ -107,6 +109,6 @@ def encode(
 
     data_df = pd.read_csv(data_path)
 
-    preds_df["region"] = data_df[labelcol]
+    preds_df["Region"] = data_df[labelcol]
 
     preds_df.to_csv(output_file_path, index=False)
