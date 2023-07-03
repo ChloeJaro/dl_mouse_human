@@ -18,18 +18,18 @@ Any arguments specified after the first argument are passed to the experiment. F
 ```
 will run the *e2_mlp* experiment using the default hyperparameters and store the results at *exps/e2_mlp/results.ign/my_exp*. 
 
-For submitting jobs on the cluster using SLURM, the *./singularity_python_run.sh* has to be replaced by *sub_job.sh*. The usage of *sub_job.sh* is almost identical to using *./singularity_python_run.sh*.
+For submitting jobs on the cluster using SLURM, the *singularity_python_run.sh* has to be replaced by *sub_job.sh*. The usage of *sub_job.sh* is almost identical to using *singularity_python_run.sh*.
 
 # Config and Hyperparameters
 
-The configurations for each experiment is in *exps/<exp_name>/exp/config.yaml*. This file contains the default values for all the experimental hyperparameter. These configurations are managed by [hydra](https://hydra.cc/). The hydra documentation provides information on the syntax to change/override any configuration. When running an experiment, any configuration can be overriden using the hydra syntax. For example, to change the dropout value in the *e2_mlp* experiment to 0.5
+The configurations for each experiment is in *exps/<exp_name>/exp/config.yaml*. This file contains the default values for all the experimental hyperparameter. These configurations are managed by [hydra](https://hydra.cc/). The hydra documentation provides information on the syntax to change/override any configuration when running an experiment. For example, to change the dropout value in the *e2_mlp* experiment to 0.5
 ```bash
 ./singularity_python_run.sh exps/e2_mlp/exp/main.py ++tag=my_exp model.dropout=0.5
 ```
 
 # Git Ignored Files/Dirs
 
-Any directory that ends with *.ign* is ignored by *git*. This is mainly used to exclude data and result files and directories from the source control. For example, the *results.ign* directory used to store every experimental results is ignored by *git*. Also, any file name containing *.ign.* will be excluded from version control. This is mainly used for temporary test scripts that do not need to be tracked by the source control. For example, a bash script with the name *test.ign.sh* will not be tracked by *git*.
+Any directory that ends with *.ign* is ignored by *git*. This is mainly used to exclude data and result files and directories from the source control. For example, the *results.ign* directory used to store experimental results is ignored by *git*. Also, any file name containing *.ign.* will be excluded from version control. This is mainly used for temporary test scripts that do not need to be tracked by the source control. For example, a bash script with the name *test.ign.sh* will not be tracked by *git*.
 
 # Running R Scripts
 
