@@ -2,7 +2,20 @@
 
 <img src='./images/autoencoder.png' alt='autoencoder' width='600'>
 
+## Loss
+
+There are three losses:
+- Classification loss: the loss for the classification output
+- Reconstruction loss: the loss for the decoder output
+- L1 loss: L1 penalty for the latent space
+
+L1 loss can be turned off by setting *model.loss.l1_weight* to 0.
+
 ## config.yaml
+
+**tag**
+
+The experiment tag. Results from the experiment will be stored at *results.ign/{tag}*.
 
 **seed**
 
