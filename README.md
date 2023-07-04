@@ -37,3 +37,24 @@ Similar to python, R scripts can be run using *singularity_r_run.sh*. This follo
 ```bash
 singularity_r_run.sh ./path/to/script.R <arguments to R script>
 ```
+
+# Example
+
+To run experiment *e2_mlp* on an HPC using SLURM with the following configurations:
+
+- 2 hidden layers, each 512 neurons
+- Nonlinearity LeakyReLU
+- Instance Normalization layer
+- Dropout 0.5
+
+the follwoing command is used
+
+```bash
+./sub_job.sh exps/e2_mlp/exp/main.py ++tag=my_exp \
+    model.hidden_layers=[512,512] \
+    model.activation.name=LeakyReLU \
+    model.norm_layer.name=instance \
+    model.dropout=0.5
+```
+
+After the experiment is finished, the results will be stored at *e2_mlp/results.ign/my_exp*.
