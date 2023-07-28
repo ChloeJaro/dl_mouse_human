@@ -76,6 +76,10 @@ class LitNet(pl.LightningModule):
         self.train_acc = torchmetrics.Accuracy(
             task="multiclass", num_classes=class_out_channels, average="micro"
         )
+        self.valid_loss = torchmetrics.MeanMetric()
+        self.valid_acc = torchmetrics.Accuracy(
+            task="multiclass", num_classes=class_out_channels, average="micro"
+        )
 
         self.encoder = MLP(
             in_channels=in_channels,
@@ -141,15 +145,56 @@ class LitNet(pl.LightningModule):
 
         return loss
 
+        
     def on_train_epoch_end(self):
         loss = self.train_loss.compute()
         train_acc = self.train_acc.compute()
 
         self.log("train_loss", loss, prog_bar=True)
+        #self.log("val_loss", val_loss, prog_bar=True)
         self.log("train_acc", train_acc, prog_bar=True)
+        #self.log("val_acc", val_acc, prog_bar=True)
 
         self.train_loss.reset()
         self.train_acc.reset()
+
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        x = x.view(x.size(0), -1)
+
+        val_latent, val_decoder_o, val_class_o = self(x)
+
+        val_loss = 0.0
+
+        class_weight = self.hparams.loss["class_weight"]
+        reconst_weight = self.hparams.loss["reconst_weight"]
+        l1_weight = self.hparams.loss["l1_weight"]
+
+        if class_weight > 0:
+            val_loss += class_weight*F.cross_entropy(val_class_o, y)
+
+        if reconst_weight > 0:
+            val_loss += reconst_weight*F.mse_loss(val_decoder_o, x)
+
+        if l1_weight > 0:
+            val_loss += l1_weight*torch.abs(val_latent).mean()
+
+        self.valid_loss(val_loss, x.size(0))
+        self.valid_acc(val_class_o, y)
+
+        return val_loss
+
+
+    def on_validation_epoch_end(self):
+        val_loss = self.valid_loss.compute()
+        val_acc = self.valid_acc.compute()
+
+        self.log("val_loss", val_loss, prog_bar=True)
+        self.log("val_acc", val_acc, prog_bar=True)
+
+        self.valid_loss.reset()
+        self.valid_acc.reset()        
 
     def predict_step(self, batch, batch_idx):
         x, _ = batch
