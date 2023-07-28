@@ -12,3 +12,4 @@ lightning
 pytorch-lightning[extra]
 torchmetrics
 skorch
+ray
