@@ -1,0 +1,45 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%post
+
+apt update
+
+apt install -y build-essential cmake wget
+apt install -y libminc2-5.2.0 libminc-dev minc-tools zlib1g-dev
+
+apt install -y nvidia-driver-470
+apt install -y python3-pip
+
+pip3 install -r numpy pillow opencv-python torch torchvision scipy pandas tensorboard future hydra-core lightning  pytorch-lightning[extra] \
+torchmetrics skorch ray
+
+wget -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+bash miniconda.sh -b
+
+eval "$(~/miniconda3/bin/conda shell.bash hook)"
+conda init
+
+conda create -y -n r_env r-essentials r-base
+
+source /root/miniconda3/bin/activate r_env
+
+conda install -y r-tidyverse r-gridExtra r-pheatmap r-data.tree r-RColorBrewer
+
+conda install -y -c conda-forge r-ggplotify r-ggnewscale
+
+echo "# install.packages("remotes", repos = "http://cran.us.r-project.org")" > install_r_package1.R
+echo "# remotes::install_github("Mouse-Imaging-Centre/RMINC")" > install_r_package2.R
+Rscript install_r_package1.R
+Rscript install_r_package2.R
+
+%runscript
+
+cd /usr/src/
+/bin/bash "$@"
+
+%startscript
+
+cd /usr/src/
+/bin/bash "$@"
