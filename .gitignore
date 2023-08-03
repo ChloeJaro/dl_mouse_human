@@ -10,6 +10,7 @@
 .jupyter/
 .local/
 .rstudio/
+.venv/
 **/.idea
 **/.vscode
 **/*.sif
