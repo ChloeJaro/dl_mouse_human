@@ -2,7 +2,7 @@
 module purge
 
 # lightning requires python > 3.8
-module load Python/3.9.6-GCCcore-11.2.0
+module load Python/3.9.5-GCCcore-10.3.0
 
 # Create venv if it doesn't exist already
 if [ ! -d ".venv" ]; then
@@ -29,5 +29,6 @@ fi
 
 # Load necessary modules
 
-module load TensorFlow
+#Activate the python venv
+source .venv/bin/activate
 
