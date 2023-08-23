@@ -13,7 +13,7 @@ from utils import save_config
 
 THIS_PATH = os.path.realpath(os.path.dirname(__file__))
 RESULTS_PATH = os.path.join(THIS_PATH, "../results.ign/")
-
+HYDRA_FULL_ERROR=1
 
 @hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg):
@@ -22,6 +22,7 @@ def main(cfg):
     fast_dev_run = cfg["trainer"]["fast_dev_run"]
 
     exp_root = os.path.join(RESULTS_PATH, tag)
+    
 
     if not fast_dev_run:
         os.makedirs(exp_root)
