@@ -2,8 +2,10 @@ import lightning.pytorch as pl
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+from torch.utils.data import random_split
 import pandas as pd
 from skorch.helper import DataFrameTransformer
+
 
 
 class GeneDataset(Dataset):
@@ -65,11 +67,14 @@ class MouseHumanDataModule(pl.LightningDataModule):
 
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
-        self.train_ds = GeneDataset(
+        full_ds = GeneDataset(
             data_path=self.mouse_voxel_data_path,
             intersct_data_path=self.human_voxel_data_path,
             labelcol=self.mouse_labelcol,
         )
+        train_size=int(0.8*len(full_ds))
+        val_size=len(full_ds)-train_size
+        self.train_ds, self.val_ds = random_split(full_ds, [train_size, val_size])
 
     def train_dataloader(self):
         return DataLoader(
@@ -79,6 +84,13 @@ class MouseHumanDataModule(pl.LightningDataModule):
             shuffle=True,
         )
 
+    def val_dataloader(self):
+        return DataLoader(
+            self.val_ds,
+            batch_size=self.valid_bsize,
+            num_workers=self.num_workers,
+            shuffle=True,
+        )
 
 def encode(
     trainer,
