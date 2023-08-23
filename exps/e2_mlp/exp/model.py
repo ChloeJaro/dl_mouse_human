@@ -76,7 +76,12 @@ class LitNet(pl.LightningModule):
         self.train_acc = torchmetrics.Accuracy(
             task="multiclass", num_classes=out_channels, average="micro"
         )
-
+        self.valid_loss = torchmetrics.MeanMetric()
+        self.valid_acc = torchmetrics.Accuracy(
+            task="multiclass", num_classes=out_channels, average="micro"
+        )
+			
+		
         self.mlp = MLP(
             in_channels=in_channels,
             hidden_layers=hidden_layers,
@@ -121,6 +126,41 @@ class LitNet(pl.LightningModule):
 
         self.log("train_loss", loss, prog_bar=True)
         self.log("train_acc", train_acc, prog_bar=True)
+
+        self.train_loss.reset()
+        self.train_acc.reset()
+
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        x = x.view(x.size(0), -1)
+
+        val_o = self(x)
+
+        val_loss = F.cross_entropy(val_o, y)
+
+        self.valid_loss(val_loss, x.size(0))
+        self.valid_acc(val_o, y)
+
+        if self.automatic_optimization:
+            return loss
+
+        opt = self.optimizers()
+        sch = self.lr_schedulers()
+
+        opt.zero_grad()
+        self.manual_backward(val_loss)
+        opt.step()
+
+        if self.trainer.is_last_batch:
+            sch.step()
+
+	
+    def on_validation_epoch_end(self):
+        val_loss = self.valid_loss.compute()
+        val_acc = self.valid_acc.compute()
+
+        self.log("val_loss", val_loss, prog_bar=True)
+        self.log("val_acc", val_acc, prog_bar=True)
 
         self.train_loss.reset()
         self.train_acc.reset()
