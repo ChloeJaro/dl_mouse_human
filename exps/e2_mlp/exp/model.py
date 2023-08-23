@@ -140,30 +140,18 @@ class LitNet(pl.LightningModule):
 
         self.valid_loss(val_loss, x.size(0))
         self.valid_acc(val_o, y)
+        
+        return val_loss
 
-        if self.automatic_optimization:
-            return loss
-
-        opt = self.optimizers()
-        sch = self.lr_schedulers()
-
-        opt.zero_grad()
-        self.manual_backward(val_loss)
-        opt.step()
-
-        if self.trainer.is_last_batch:
-            sch.step()
-
-	
     def on_validation_epoch_end(self):
         val_loss = self.valid_loss.compute()
         val_acc = self.valid_acc.compute()
-
+        
         self.log("val_loss", val_loss, prog_bar=True)
         self.log("val_acc", val_acc, prog_bar=True)
 
-        self.train_loss.reset()
-        self.train_acc.reset()
+        self.valid_loss.reset()
+        self.valid_acc.reset()
 
     def predict_step(self, batch, batch_idx):
         x, _ = batch
