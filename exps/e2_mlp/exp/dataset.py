@@ -89,7 +89,7 @@ class MouseHumanDataModule(pl.LightningDataModule):
             self.val_ds,
             batch_size=self.valid_bsize,
             num_workers=self.num_workers,
-            shuffle=True,
+            shuffle=False,
         )
 
 def encode(
