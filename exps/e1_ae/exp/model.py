@@ -3,7 +3,8 @@ import functools
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import lightning.pytorch as pl
+#import lightning.pytorch as pl
+import pytorch_lightning as pl
 import torchmetrics
 
 NORM_LAYER_DICT = {
