@@ -5,16 +5,16 @@ module purge
 module load Python/3.9.5-GCCcore-10.3.0
 
 # Create venv if it doesn't exist already
-if [ ! -d ".venv" ]; then
+if [ ! -d "/well/mars/users/uvy786/python/.venv" ]; then
     echo "Initializing python virtual environment"
 
     # Create venv
-    python3 -m venv .venv
+    python3 -m venv /well/mars/users/uvy786/python/.venv
 
     echo "installing python packages..."
 
     # Activate the venv
-    source .venv/bin/activate
+    source /well/mars/users/uvy786/python/.venv/bin/activate
 
     # Upgrade pip and install requirements
     echo "Upgrading pip"
@@ -30,5 +30,7 @@ fi
 # Load necessary modules
 
 #Activate the python venv
-source .venv/bin/activate
+#source /path/to/projectA-${MODULE_CPU_TYPE}/bin/activate #TODO setup for Ivybridge nodes
+
+source /well/mars/users/uvy786/python/.venv/bin/activate
 

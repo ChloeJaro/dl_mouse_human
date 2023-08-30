@@ -151,9 +151,7 @@ class LitNet(pl.LightningModule):
         train_acc = self.train_acc.compute()
 
         self.log("train_loss", loss, prog_bar=True)
-        #self.log("val_loss", val_loss, prog_bar=True)
         self.log("train_acc", train_acc, prog_bar=True)
-        #self.log("val_acc", val_acc, prog_bar=True)
 
         self.train_loss.reset()
         self.train_acc.reset()
