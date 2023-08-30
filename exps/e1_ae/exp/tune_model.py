@@ -3,7 +3,8 @@ import os
 import torch
 import torch.optim as optim
 
-import lightning.pytorch as pl
+#import lightning.pytorch as pl
+import pytorch_lightning as pl
 from lightning.pytorch import seed_everything
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import TensorBoardLogger
@@ -63,7 +64,7 @@ def main(cfg):
         .trainer(max_epochs=num_epochs, accelerator=accelerator, logger=logger)
         .fit_params(datamodule=data)
         .checkpointing(monitor="val_acc", save_top_k=2, mode="max")
-        #.build()
+        .build()
     )
 
     searcheable_lightning_config = (
@@ -105,7 +106,7 @@ def main(cfg):
 
         tuner = tune.Tuner(
             lightning_trainer,
-            param_space={"lightning_config": searchable_lightning_config},
+            param_space={"lightning_config": searcheable_lightning_config},
             tune_config=tune.TuneConfig(
                 metric="val_acc",
                 mode="max",
