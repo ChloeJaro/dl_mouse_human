@@ -78,7 +78,8 @@ def main(cfg):
             "model.loss.l1_weight": tune.grid_search([0.01, 0.1, 0.5, 1, 10]),
             "model.loss.reconst_weight": tune.grid_search([0.01, 0.1, 0.5, 1, 10]),
 
-        })    
+        })
+        .build()  
     )
     
     run_config = RunConfig(
@@ -87,12 +88,15 @@ def main(cfg):
             checkpoint_score_attribute="val_acc",
             checkpoint_score_order="max",
         ),
+        results
     )
 
     scheduler = ASHAScheduler(max_t=num_epochs, grace_period=1, reduction_factor=2)
 
     scaling_config = ScalingConfig(
-        num_workers=3, use_gpu=True, resources_per_worker={"CPU": 1, "GPU": 1}
+        num_workers=4, \
+        use_gpu=True, \
+        resources_per_worker={"CPU": 1, "GPU": 1}
     )
     #trainer.fit(model=model, datamodule=data)
     lightning_trainer = LightningTrainer(
@@ -114,7 +118,8 @@ def main(cfg):
                 scheduler=scheduler,
             ),
             run_config=air.RunConfig(
-                name="tune_mnist_asha",
+                local_dir=exp_root,
+                name="tune_dl_MH_asha",
             ),
         )
         results = tuner.fit()
@@ -122,8 +127,6 @@ def main(cfg):
         best_result
 
     tune_asha(num_samples=num_samples)
-
-
 
 
 if __name__ == "__main__":
