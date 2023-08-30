@@ -17,7 +17,6 @@ RESULTS_PATH = os.path.join(THIS_PATH, "../results.ign/")
 
 
 @hydra.main(version_base=None, config_path=".", config_name="config")
-
 def main(cfg):
     tag = cfg["tag"]
 

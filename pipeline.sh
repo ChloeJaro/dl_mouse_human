@@ -1,4 +1,4 @@
-#!bin/bash -l
+#!bin/bash
 
 # -----------------------------------------------------------
 
@@ -10,7 +10,7 @@
 
 module purge
 
-# Setup python virtual environment to run
-sh setup_venv.sh
-
+# Setup python virtual environment
+#sh setup_venv.sh
+source /well/mars/users/uvy786/python/.venv/bin/activate
 python3 "$@"
