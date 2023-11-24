@@ -39,7 +39,7 @@ trainer:
   sync_batchnorm: false
   reload_dataloaders_every_n_epochs: 0
 model:
-  in_channels: 2835
+  in_channels: 2819 # change to input dim of sag (inter) cor
   encoder_layers:
     - 200
     - 200
@@ -70,6 +70,9 @@ data:
   human_voxel_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv
   mouse_region_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_ROI_Region67_scaled.csv
   human_region_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_ROI_Region88_scaled.csv
+  coronal_maskcoronal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled.csv
+  coronal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_masksagittal_log2_imputed_labelled.csv
+  sagittal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_sagittal_masksagittal_log2_grouped_imputed_labelled.csv
   mouse_labelcol: Region67
   human_labelcol: Region88
   train_bsize: 64
