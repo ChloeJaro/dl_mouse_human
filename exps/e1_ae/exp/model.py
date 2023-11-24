@@ -3,9 +3,13 @@ import functools
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-#import lightning.pytorch as pl
-import pytorch_lightning as pl
+import lightning.pytorch as pl
 import torchmetrics
+
+from torch import Tensor
+
+import numpy as np
+
 
 NORM_LAYER_DICT = {
     "instance": nn.InstanceNorm1d,
@@ -58,6 +62,7 @@ class MLP(nn.Module):
 class LitNet(pl.LightningModule):
     def __init__(
         self,
+        weights: list,
         in_channels: int,
         encoder_layers: list,
         decoder_layers: list,
@@ -77,11 +82,13 @@ class LitNet(pl.LightningModule):
         self.train_acc = torchmetrics.Accuracy(
             task="multiclass", num_classes=class_out_channels, average="micro"
         )
-        self.valid_loss = torchmetrics.MeanMetric()
-        self.valid_acc = torchmetrics.Accuracy(
+        self.val_loss = torchmetrics.MeanMetric()
+        self.val_acc = torchmetrics.Accuracy(
             task="multiclass", num_classes=class_out_channels, average="micro"
         )
 
+        self.w = Tensor(weights.balance_weights)
+        
         self.encoder = MLP(
             in_channels=in_channels,
             hidden_layers=encoder_layers,
@@ -121,6 +128,33 @@ class LitNet(pl.LightningModule):
         return latent, decoder_output, class_output
 
     def training_step(self, batch, batch_idx):
+        
+        x, y = batch
+        x = x.view(x.size(0), -1)
+        latent, decoder_o, class_o = self(x)
+
+        loss = 0.0
+
+        class_weight = self.hparams.loss["class_weight"]
+        reconst_weight = self.hparams.loss["reconst_weight"]
+        l1_weight = self.hparams.loss["l1_weight"]
+
+
+        if class_weight > 0:
+            loss += class_weight*F.cross_entropy(class_o, y, weight=self.w)
+            #loss += class_weight*F.cross_entropy(class_o, y) # if not weighting for imbalanced samples.
+        if reconst_weight > 0:
+            loss += reconst_weight*F.mse_loss(decoder_o, x)
+
+        if l1_weight > 0:
+            loss += l1_weight*torch.abs(latent).mean()
+
+        self.train_loss(loss, x.size(0))
+        self.train_acc(class_o, y)
+
+        return loss
+
+    def validation_step(self, batch, batch_idx):
         x, y = batch
         x = x.view(x.size(0), -1)
 
@@ -134,6 +168,7 @@ class LitNet(pl.LightningModule):
 
         if class_weight > 0:
             loss += class_weight*F.cross_entropy(class_o, y)
+            #loss += class_weight*F.cross_entropy(class_o, y, weight=Tensor(self.w))
 
         if reconst_weight > 0:
             loss += reconst_weight*F.mse_loss(decoder_o, x)
@@ -141,65 +176,36 @@ class LitNet(pl.LightningModule):
         if l1_weight > 0:
             loss += l1_weight*torch.abs(latent).mean()
 
-        self.train_loss(loss, x.size(0))
-        self.train_acc(class_o, y)
+        self.val_loss(loss, x.size(0))
+        self.val_acc(class_o, y)
 
         return loss
 
-        
     def on_train_epoch_end(self):
         loss = self.train_loss.compute()
         train_acc = self.train_acc.compute()
 
-        self.log("train_loss", loss, prog_bar=True)
-        self.log("train_acc", train_acc, prog_bar=True)
+        self.log("hp/train_loss", loss, prog_bar=True)
+        self.log("hp/train_acc", train_acc, prog_bar=True)
 
         self.train_loss.reset()
         self.train_acc.reset()
 
+    def on_validation_epoch_end(self):
+        loss = self.val_loss.compute()
+        acc = self.val_acc.compute()
 
-    def validation_step(self, batch, batch_idx):
+        self.log("hp/val_loss", loss, prog_bar=True)
+        self.log("hp/val_acc", acc, prog_bar=True)
+
+        self.val_loss.reset()
+        self.val_acc.reset()
+
+    def predict_step(self, batch, batch_idx):
         x, y = batch
         x = x.view(x.size(0), -1)
 
-        val_latent, val_decoder_o, val_class_o = self(x)
-
-        val_loss = 0.0
-
-        class_weight = self.hparams.loss["class_weight"]
-        reconst_weight = self.hparams.loss["reconst_weight"]
-        l1_weight = self.hparams.loss["l1_weight"]
-
-        if class_weight > 0:
-            val_loss += class_weight*F.cross_entropy(val_class_o, y)
-
-        if reconst_weight > 0:
-            val_loss += reconst_weight*F.mse_loss(val_decoder_o, x)
-
-        if l1_weight > 0:
-            val_loss += l1_weight*torch.abs(val_latent).mean()
-
-        self.valid_loss(val_loss, x.size(0))
-        self.valid_acc(val_class_o, y)
-
-        return val_loss
-
-
-    def on_validation_epoch_end(self):
-        val_loss = self.valid_loss.compute()
-        val_acc = self.valid_acc.compute()
-
-        self.log("val_loss", val_loss, prog_bar=True)
-        self.log("val_acc", val_acc, prog_bar=True)
-
-        self.valid_loss.reset()
-        self.valid_acc.reset()        
-
-    def predict_step(self, batch, batch_idx):
-        x, _ = batch
-        x = x.view(x.size(0), -1)
-
-        return self.encoder(x)
+        return self.encoder(x), self.decoder(self.encoder(x)), self.classifier(self.encoder(x))
 
     def configure_optimizers(self):
         opt_cfg = self.hparams.optimizer
@@ -210,3 +216,4 @@ class LitNet(pl.LightningModule):
             **opt_cfg["init_args"],
         )
         return optimizer
+
