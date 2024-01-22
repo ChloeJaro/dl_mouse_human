@@ -1,0 +1,108 @@
+# lightning.pytorch==2.0.0
+weights: false
+cross_val: false
+seed: 0
+trainer:
+  max_epochs: 200
+  accelerator: auto
+  devices: 1
+  deterministic: "warn"
+  fast_dev_run: false
+  strategy: auto
+  num_nodes: 1
+  precision: 32-true
+  min_epochs: null
+  max_steps: -1
+  min_steps: null
+  max_time: null
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: null
+  overfit_batches: 0.0
+  val_check_interval: null
+  check_val_every_n_epoch: 1
+  num_sanity_val_steps: null
+  log_every_n_steps: 2
+  enable_checkpointing: null
+  enable_progress_bar: null
+  enable_model_summary: null
+  accumulate_grad_batches: 1
+  gradient_clip_val: null
+  gradient_clip_algorithm: null
+  benchmark: null
+  inference_mode: true
+  use_distributed_sampler: true
+  profiler: null
+  detect_anomaly: false
+  barebones: false
+  plugins: null
+  sync_batchnorm: false
+  reload_dataloaders_every_n_epochs: 0
+model:
+  latent_dim: 50
+  in_channels: 2835 # change to input dim of sag (inter) cor 2819 during cross validation
+  encoder_layers:
+    - 500
+    - 500
+    - 500
+  decoder_layers:
+    - 500
+    - 500
+    - 500
+  class_layers:
+    - 500
+    - 500
+    - 500
+  class_out_channels: 67
+  activation:
+    name: "SiLU" #"ReLU"
+    init_args: {}
+  norm_layer:
+    name: "instance" # instance | batch | none
+    init_args: {}
+  dropout: 0.0
+  optimizer:
+    name: "AdamW"
+    init_args: {}
+  loss:
+    class_weight: 1.
+    reconst_weight: 1.
+    l1_weight: 1.
+  onecycle_lr_scheduler:
+    max_lr: 1e-5
+    cycle_momentum: false
+
+data:
+  mouse_voxel_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
+  human_voxel_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv
+  mouse_region_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_ROI_Region67_scaled.csv
+  human_region_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_ROI_Region88_scaled.csv
+  coronal_maskcoronal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled.csv
+  coronal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_masksagittal_log2_imputed_labelled.csv
+  sagittal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_sagittal_masksagittal_log2_grouped_imputed_labelled.csv
+  mouse_labelcol: Region67
+  human_labelcol: Region88
+  train_bsize: 64
+  valid_bsize: 64
+  num_workers: 4
+
+encode:
+  bsize: 64
+  num_workers: 4
+
+hydra:
+  run:
+    dir: .
+  sweep:
+    dir: output/${hydra.job.override_dirname}/seed=${seed}
+    subdir: ${hydra.job.num}
+    override_dirname:
+        exclude_keys:
+          - seed
+
+defaults:
+  - override hydra/job_logging: disabled
+  - override hydra/hydra_logging: disabled
+ # - override hydra/launcher: submitit_slurm
+ # - override hydra/sweeper: optuna
