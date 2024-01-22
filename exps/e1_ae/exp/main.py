@@ -1,7 +1,6 @@
 import os
 import torch
 import lightning.pytorch as pl
-#import pytorch_lightning as pl
 from lightning.pytorch import seed_everything
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -13,8 +12,8 @@ from torch import Tensor
 from torch.utils.data import TensorDataset, Subset
 import numpy as np
 
-from model import LitNet
-from dataset import MouseHumanDataModule, CrossValDataset, GetWeights, encode, autoencode, classify
+from model import LitNet, LitNet_w
+from dataset import MouseHumanDataModule, MouseHumanDataModuleCV, GetWeights, encode, autoencode, classify
 from utils import save_config
 
 THIS_PATH = os.path.realpath(os.path.dirname(__file__))
@@ -27,6 +26,10 @@ def main(cfg):
 
     fast_dev_run = cfg["trainer"]["fast_dev_run"]
 
+    balance_weighting = cfg["weights"]
+
+    cross_val = cfg["cross_val"]
+
     exp_root = os.path.join(RESULTS_PATH, tag)
 
     if not fast_dev_run:
@@ -38,37 +41,36 @@ def main(cfg):
     encode_path = os.path.join(exp_root, "encoding")
 
     cfg = OmegaConf.to_container(cfg)
-
-    seed_everything(cfg["seed"], workers=True)
-
-    weights_balance = GetWeights(ref_data_path=cfg["data"]["coronal_maskcoronal_path"], labelcol=cfg["data"]["mouse_labelcol"])
     early_stopping = EarlyStopping(monitor='hp/train_loss', patience=3, verbose=True)
 
-    model = LitNet(weights_balance, **cfg["model"])
-    data = MouseHumanDataModule(seed=cfg["seed"], **cfg["data"])
+
+    if cross_val:
+        data = MouseHumanDataModuleCV(seed=cfg["seed"], **cfg["data"])
+
+    else:
+        data = MouseHumanDataModule(seed=cfg["seed"], **cfg["data"])
 
     logger = TensorBoardLogger(save_dir=exp_root)
     checkpoint_callback = ModelCheckpoint(dirpath=exp_root, save_last=True)
 
+    seed_everything(cfg["seed"], workers=True)
+
+    if balance_weighting:
+    
+        weights = GetWeights(ref_data_path=cfg["data"]["coronal_maskcoronal_path"], labelcol=cfg["data"]["mouse_labelcol"])
+        weights_ = weights.balance_weights
+        model = LitNet_w(weights_, **cfg["model"])
+    
+    else:
+        model = LitNet(**cfg["model"])
+
+        
     trainer = pl.Trainer(
         default_root_dir=exp_root,
         callbacks=[checkpoint_callback],
         logger=logger,
         **cfg["trainer"]
     )
-
-    crossval_ds = CrossValDataset(
-    ref_data_path=cfg["data"]["coronal_maskcoronal_path"],
-    cor_data_path=cfg["data"]["coronal_masksagittal_path"],
-    sag_data_path=cfg["data"]["sagittal_masksagittal_path"],
-    labelcol=cfg["data"]["mouse_labelcol"],
-    seed=22,
-    )
-
-    print(np.shape(crossval_ds.train_arr))
-    print(np.shape(crossval_ds.val_arr))
-    print(np.shape(crossval_ds.target_arr))
-    print(np.shape(weights_balance.balance_weights))
     
     if not os.path.exists(encode_path):
         os.makedirs(encode_path)
@@ -81,8 +83,8 @@ def main(cfg):
 
     ckpt_path = os.path.join(exp_root, "last.ckpt")
 
-    #encode_path = os.path.join(exp_root, "encoding")
-        
+
+    model_best = LitNet_w.load_from_checkpoint(ckpt_path)
 
     encode_recipes = [
         {
@@ -113,7 +115,14 @@ def main(cfg):
 
     
     for enc_recipe in encode_recipes:
-        encode(trainer=trainer, ckpt_path=ckpt_path,
+        encode(
+            trainer=trainer, 
+            model=model_best,
+            ckpt_path=ckpt_path, 
+            ref_data_path=cfg["data"]["coronal_maskcoronal_path"],
+            cor_data_path=cfg["data"]["coronal_masksagittal_path"],
+            sag_data_path=cfg["data"]["sagittal_masksagittal_path"],
+            seed=cfg["seed"],
             **enc_recipe, **cfg['encode'])
 
 
@@ -125,7 +134,7 @@ def main(cfg):
     ckpt_path = os.path.join(exp_root, "last.ckpt")
     #ckpt_path = checkpoint_callback.best_model_path # chose best model encountered during training
     #model_best = model.load_from_checkpoint(ckpt_path, map_location=torch.device('cpu')) # on local machine
-    model_best = model.load_from_checkpoint(ckpt_path)
+    #model_best = model.load_from_checkpoint(ckpt_path)
     autoencode_recipes = [
     {
         'data_path': cfg["data"]["mouse_voxel_data_path"],
@@ -155,7 +164,14 @@ def main(cfg):
 
    # trainer.fit(model_best,data)
     for autoenc_recipe in autoencode_recipes:
-        autoencode(trainer=trainer, model=model_best,
+        autoencode(
+            trainer=trainer, 
+            model=model_best,
+            ckpt_path=ckpt_path,
+            ref_data_path=cfg["data"]["coronal_maskcoronal_path"],
+            cor_data_path=cfg["data"]["coronal_masksagittal_path"],
+            sag_data_path=cfg["data"]["sagittal_masksagittal_path"],
+            seed=cfg["seed"],
             **autoenc_recipe, **cfg['encode'])
 
     classify_path = os.path.join(exp_root, "classifying")
@@ -181,7 +197,14 @@ def main(cfg):
 
    # trainer.fit(model_best,data)
     for classif_recipe in classify_recipes:
-        classify(trainer=trainer, model=model_best,
+        classify(
+            trainer=trainer, 
+            model=model_best,
+            ckpt_path=ckpt_path,
+            ref_data_path=cfg["data"]["coronal_maskcoronal_path"],
+            cor_data_path=cfg["data"]["coronal_masksagittal_path"],
+            sag_data_path=cfg["data"]["sagittal_masksagittal_path"],
+            seed=cfg["seed"],
             **classif_recipe, **cfg['encode'])
 
 if __name__ == "__main__":

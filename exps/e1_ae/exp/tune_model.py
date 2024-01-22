@@ -28,7 +28,8 @@ THIS_PATH = os.path.realpath(os.path.dirname(__file__))
 RESULTS_PATH = os.path.join(THIS_PATH, "../results.ign/")
 
 
-
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+ray.init(num_gpus=1)
 
 
 @hydra.main(version_base=None, config_path=".", config_name="config")
@@ -87,8 +88,7 @@ def main(cfg):
             num_to_keep=2,
             checkpoint_score_attribute="val_acc",
             checkpoint_score_order="max",
-        ),
-        results
+        )
     )
 
     scheduler = ASHAScheduler(max_t=num_epochs, grace_period=1, reduction_factor=2)

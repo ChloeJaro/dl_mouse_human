@@ -1,8 +1,9 @@
 # lightning.pytorch==2.0.0
-
+weights: false
+cross_val: false
 seed: 0
 trainer:
-  max_epochs: 200
+  max_epochs: 50
   accelerator: auto
   devices: 1
   deterministic: "warn"
@@ -39,16 +40,19 @@ trainer:
   sync_batchnorm: false
   reload_dataloaders_every_n_epochs: 0
 model:
-  in_channels: 2819 # change to input dim of sag (inter) cor
+  in_channels: 2835 # change to input dim of sag (inter) cor
   encoder_layers:
-    - 200
-    - 200
+    - 500
+    - 500
+    - 500
   decoder_layers:
-    - 200
-    - 200
+    - 500
+    - 500
+    - 500
   class_layers:
-    - 200
-    - 200
+    - 500
+    - 500
+    - 500
   class_out_channels: 67
   activation:
     name: "ReLU"
@@ -58,12 +62,15 @@ model:
     init_args: {}
   dropout: 0.0
   optimizer:
-    name: "Adam"
+    name: "AdamW"
     init_args: {}
   loss:
     class_weight: 1.
     reconst_weight: 1.
     l1_weight: 1.
+  onecycle_lr_scheduler:
+    max_lr: 1e-4
+    cycle_momentum: false
 
 data:
   mouse_voxel_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
@@ -86,8 +93,12 @@ encode:
 hydra:
   run:
     dir: .
-  output_subdir: null
+  sweep:
+    dir: ./multirun
+    subdir: ${hydra.job.num}
 
 defaults:
   - override hydra/job_logging: disabled
   - override hydra/hydra_logging: disabled
+ # - override hydra/launcher: submitit_slurm
+ # - override hydra/sweeper: optuna
