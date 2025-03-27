@@ -22,3 +22,5 @@
 **/*.out
 
 miniconda.sh
+
+similarity_scored.csv.npy
