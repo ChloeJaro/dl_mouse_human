@@ -13,3 +13,4 @@ pytorch-lightning[extra]
 torchmetrics
 skorch
 ray
+neuromaps
