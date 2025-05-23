@@ -1,1 +1,1 @@
-data/mouse_human/genes/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv filter=lfs diff=lfs merge=lfs -text
+data/mouse_human/genes/part_* filter=lfs diff=lfs merge=lfs -text
