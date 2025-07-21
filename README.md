@@ -61,5 +61,4 @@ After the experiment is finished, the results will be stored at *e2_mlp/results.
 
 
 ## License:
-This project is licensed under the Creative Commons Attribution 4.0 International License. See the [LICENSE](LICENSE) file for details.
-
+This project is licensed under the Creative Commons Attribution 4.0 International License (CC-BY-NC). See the LICENSE file for details.
