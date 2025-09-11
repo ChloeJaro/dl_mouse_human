@@ -1,1 +1,0 @@
-data/mouse_human/genes/part_* filter=lfs diff=lfs merge=lfs -text
