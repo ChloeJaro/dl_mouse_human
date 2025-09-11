@@ -1,5 +1,5 @@
 # lightning.pytorch==2.0.0
-weights: false
+weights: true
 cross_val: false
 seed: 0
 trainer:
@@ -69,18 +69,20 @@ model:
     class_weight: 1.
     reconst_weight: 1.
     l1_weight: 1.
+    kl_weight: 0.001
   onecycle_lr_scheduler:
     max_lr: 1e-5
     cycle_momentum: false
 
 data:
-  mouse_voxel_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
-  human_voxel_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_samples_pipeline_abagen_labelled_scaled.csv
+  mouse_voxel_data_path: data/mouse_human/genes/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
+  human_voxel_data_path: data/mouse_human/Antoine/human_expression.csv
+  autism_voxel_data_path: data/mouse_human/Antoine/mouse_expression.csv
   mouse_region_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_ROI_Region67_scaled.csv
   human_region_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_ROI_Region88_scaled.csv
-  coronal_maskcoronal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled.csv
-  coronal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_masksagittal_log2_imputed_labelled.csv
-  sagittal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_sagittal_masksagittal_log2_grouped_imputed_labelled.csv
+  coronal_maskcoronal_path: data/mouse_human/genes/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
+  coronal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_masksagittal_CV_log2_imputed_labelled.csv
+  sagittal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_sagittal_masksagittal_CV_log2_imputed_labelled.csv
   mouse_labelcol: Region67
   human_labelcol: Region88
   train_bsize: 64
@@ -94,12 +96,12 @@ encode:
 hydra:
   run:
     dir: .
-  sweep:
-    dir: output/${hydra.job.override_dirname}/seed=${seed}
-    subdir: ${hydra.job.num}
-    override_dirname:
-        exclude_keys:
-          - seed
+  # sweep:
+  #   dir: output/${hydra.job.override_dirname}/seed=${seed}
+  #   subdir: ${hydra.job.num}
+  #   override_dirname:
+  #       exclude_keys:
+  #         - seed
 
 defaults:
   - override hydra/job_logging: disabled

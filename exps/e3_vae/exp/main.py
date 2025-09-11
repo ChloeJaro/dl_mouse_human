@@ -1,7 +1,6 @@
 import os
 import torch
 import lightning.pytorch as pl
-#import pytorch_lightning as pl
 from lightning.pytorch import seed_everything
 from lightning.pytorch.callbacks.early_stopping import EarlyStopping
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -14,7 +13,7 @@ from torch.utils.data import TensorDataset, Subset
 import numpy as np
 
 from model import LitNet, LitNet_w
-from dataset import MouseHumanDataModule, CrossValDataset, GetWeights, encode, autoencode, classify
+from dataset import MouseHumanDataModule, MouseHumanDataModuleCV, CrossValDataset, GetWeights, encode, autoencode, classify
 from utils import save_config
 
 THIS_PATH = os.path.realpath(os.path.dirname(__file__))
@@ -32,6 +31,7 @@ def main(cfg):
     cross_val = cfg["cross_val"]
 
     exp_root = os.path.join(RESULTS_PATH, tag)
+    model_root = cfg["model_root"]  # path to pre-trained model for encoding
 
     if not fast_dev_run:
         if not os.path.exists(exp_root):
@@ -83,7 +83,13 @@ def main(cfg):
     if not os.path.exists(encode_path):
         os.makedirs(encode_path)
 
-    trainer.fit(model=model, datamodule=data)
+    if cfg["train"] == True:
+        trainer.fit(model=model, datamodule=data)
+        ckpt_path = os.path.join(exp_root, "last.ckpt")
+        model_best = LitNet_w.load_from_checkpoint(ckpt_path)
+    else:
+        ckpt_path = os.path.join(model_root, "last.ckpt")
+        model_best = LitNet_w.load_from_checkpoint(ckpt_path)
 
 
     if fast_dev_run:
@@ -91,38 +97,35 @@ def main(cfg):
 
     if cross_val:
         return
-
-
-    ckpt_path = os.path.join(exp_root, "last.ckpt")
-    model_best = LitNet.load_from_checkpoint(ckpt_path)
+    
     #encode_path = os.path.join(exp_root, "encoding")
         
 
     encode_recipes = [
         {
-            'data_path': cfg["data"]["mouse_voxel_data_path"],
+            'data_path': cfg["data"]["autism_voxel_data_path"],
             'intersct_data_path': cfg["data"]["human_voxel_data_path"],
-            'labelcol': cfg["data"]["mouse_labelcol"],
-            'output_file_path': os.path.join(encode_path, "mouse_voxel_encoding.csv"),
+            'labelcol': None,
+            'output_file_path': os.path.join(encode_path, "mouse_autism_encoding.csv"),
         },
         {
             'data_path': cfg["data"]["human_voxel_data_path"],
             'intersct_data_path': cfg["data"]["mouse_voxel_data_path"],
-            'labelcol': cfg["data"]["human_labelcol"],
-            'output_file_path': os.path.join(encode_path, "human_voxel_encoding.csv"),
+            'labelcol': None,
+            'output_file_path': os.path.join(encode_path, "human_autism_encoding.csv"),
         },
-        {
-            'data_path': cfg["data"]["mouse_region_data_path"],
-            'intersct_data_path': cfg["data"]["human_voxel_data_path"],
-            'labelcol': 'Region',
-            'output_file_path': os.path.join(encode_path, "mouse_region_encoding.csv"),
-        },
-        {
-            'data_path': cfg["data"]["human_region_data_path"],
-            'intersct_data_path': cfg["data"]["mouse_voxel_data_path"],
-            'labelcol': 'Region',
-            'output_file_path': os.path.join(encode_path, "human_region_encoding.csv"),
-        },
+        # {
+        #     'data_path': cfg["data"]["mouse_region_data_path"],
+        #     'intersct_data_path': cfg["data"]["human_voxel_data_path"],
+        #     'labelcol': 'Region',
+        #     'output_file_path': os.path.join(encode_path, "mouse_region_encoding.csv"),
+        # },
+        # {
+        #     'data_path': cfg["data"]["human_region_data_path"],
+        #     'intersct_data_path': cfg["data"]["mouse_voxel_data_path"],
+        #     'labelcol': 'Region',
+        #     'output_file_path': os.path.join(encode_path, "human_region_encoding.csv"),
+        # },
     ]
 
     

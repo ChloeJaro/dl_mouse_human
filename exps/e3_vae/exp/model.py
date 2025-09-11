@@ -233,6 +233,7 @@ class LitNet_w(pl.LightningModule):
         class_weight = self.hparams.loss["class_weight"]
         reconst_weight = self.hparams.loss["reconst_weight"]
         l1_weight = self.hparams.loss["l1_weight"]
+        kl_weight = self.hparams.loss["kl_weight"]
 
         """if class_weight > 0:
             loss += class_weight*F.cross_entropy(class_o, y)
@@ -289,7 +290,7 @@ class LitNet_w(pl.LightningModule):
         self.val_acc.reset()
 
     def predict_step(self, batch, batch_idx):
-        x, y = batch
+        x = batch
         x = x.view(x.size(0), -1)
         mu, logvar, latent, decoder_o, class_o = self(x)
 

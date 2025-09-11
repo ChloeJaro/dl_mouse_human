@@ -9,31 +9,22 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, FunctionTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset, TensorDataset
-from torch import Tensor
+from torch.utils.data import TensorDataset
 
-from joblib import Parallel, delayed
 from joblib.externals.loky.backend.context import get_context # For parallel launch with hydra
 
 
 class GeneDataset(Dataset):
     def __init__(self, data_path, intersct_data_path, labelcol):
         df = pd.read_csv(data_path)
-
         region_columns_mask = df.columns.str.match("Region")
-
         input_df = df.loc[:, ~region_columns_mask]
-
         intersct_df = pd.read_csv(intersct_data_path)
-
         input_df = input_df.loc[:, input_df.columns.isin(intersct_df.columns)]
-
         target_df = df[[labelcol]].copy()
-
         target_df[labelcol] = target_df[labelcol].astype("category")
-
+        
         dftx = DataFrameTransformer()
-
         input_arr = dftx.fit_transform(input_df)
         target_arr = dftx.fit_transform(target_df)
 
@@ -48,6 +39,22 @@ class GeneDataset(Dataset):
         y = self.target_arr[idx]
 
         return torch.tensor(x), torch.tensor(y)
+    
+class GeneNoRegionsDataset(Dataset):
+    def __init__(self, data_path, intersct_data_path):
+        input_df = pd.read_csv(data_path)
+        intersct_df = pd.read_csv(intersct_data_path)
+        input_df = input_df.loc[:, input_df.columns.isin(intersct_df.columns)]
+        dftx = DataFrameTransformer()
+        input_arr = dftx.fit_transform(input_df)
+        self.input_arr = input_arr["X"]
+
+    def __len__(self):
+        return len(self.input_arr)
+
+    def __getitem__(self, idx):
+        x = self.input_arr[idx]
+        return torch.tensor(x)
     
 class GetWeights(Dataset):
     def __init__(self, ref_data_path, labelcol):
@@ -268,11 +275,7 @@ class MouseHumanDataModule(pl.LightningDataModule):
         seed: int,
         mouse_voxel_data_path: str,
         human_voxel_data_path: str,
-        mouse_region_data_path: str,
-        human_region_data_path: str,
-        coronal_maskcoronal_path: str,
-        coronal_masksagittal_path: str,
-        sagittal_masksagittal_path: str,
+        autism_voxel_data_path: str,
         mouse_labelcol: str,
         human_labelcol: str,
         train_bsize: int,
@@ -284,9 +287,7 @@ class MouseHumanDataModule(pl.LightningDataModule):
         self.seed = seed
         self.mouse_voxel_data_path = mouse_voxel_data_path
         self.human_voxel_data_path = human_voxel_data_path
-        self.coronal_maskcoronal_path = coronal_maskcoronal_path
-        self.coronal_masksagittal_path = coronal_masksagittal_path
-        self.sagittal_masksagittal_path = sagittal_masksagittal_path
+        self.autism_voxel_data_path = autism_voxel_data_path
         self.mouse_labelcol = mouse_labelcol
         self.human_labelcol = human_labelcol
         self.train_bsize = train_bsize
@@ -326,8 +327,6 @@ class MouseHumanDataModuleCV(pl.LightningDataModule):
         seed: int,
         mouse_voxel_data_path: str,
         human_voxel_data_path: str,
-        mouse_region_data_path: str,
-        human_region_data_path: str,
         coronal_maskcoronal_path: str,
         coronal_masksagittal_path: str,
         sagittal_masksagittal_path: str,
@@ -385,10 +384,6 @@ def encode(
     trainer,
     model,
     ckpt_path,
-    ref_data_path,
-    cor_data_path,
-    sag_data_path,
-    seed,
     data_path,
     intersct_data_path,
     labelcol,
@@ -396,18 +391,18 @@ def encode(
     bsize,
     num_workers,
 ):
-    dataset = GeneDataset(
-        data_path=data_path,
-        intersct_data_path=intersct_data_path,
-        labelcol=labelcol,
-    )
-    """dataset = TestPredDataset(
-        ref_data_path=ref_data_path, 
-        cor_data_path=cor_data_path, 
-        sag_data_path=sag_data_path, 
-        labelcol=labelcol, 
-        seed=seed,
-    )"""
+    if labelcol == "None":
+        dataset= GeneNoRegionsDataset( 
+            data_path=data_path,
+            intersct_data_path=intersct_data_path,
+        )
+    else:
+        dataset = GeneDataset(
+            data_path=data_path,
+            intersct_data_path=intersct_data_path,
+            labelcol=labelcol,
+        )
+
 
     dataloader = DataLoader(
         dataset, batch_size=bsize, num_workers=num_workers, shuffle=False
@@ -422,21 +417,20 @@ def encode(
 
     preds_df = pd.DataFrame(preds)
 
-    data_df = pd.read_csv(data_path)
+    if labelcol == "None":
+        preds_df.to_csv(output_file_path, index=False)
 
-    preds_df["Region"] = data_df[labelcol]
+    else:
+        data_df = pd.read_csv(data_path)
+        preds_df["Region"] = data_df[labelcol]
+        preds_df.to_csv(output_file_path, index=False)  
 
-    preds_df.to_csv(output_file_path, index=False)
+
 
 
 def autoencode(
     trainer,
     model,
-    ckpt_path,
-    ref_data_path,
-    cor_data_path,
-    sag_data_path,
-    seed,
     data_path,
     intersct_data_path,
     labelcol,
@@ -482,11 +476,6 @@ def autoencode(
 def classify(
     trainer,
     model,
-    ckpt_path,
-    ref_data_path,
-    cor_data_path,
-    sag_data_path,
-    seed,
     data_path,
     intersct_data_path,
     labelcol,
