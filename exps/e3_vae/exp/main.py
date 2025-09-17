@@ -66,7 +66,18 @@ def main(cfg):
         data = MouseHumanDataModuleCV(seed=cfg["seed"], **cfg["data"])
 
     else:
-        data = MouseHumanDataModule(seed=cfg["seed"], **cfg["data"])
+        data = MouseHumanDataModule(
+    seed=cfg["seed"],
+    mouse_voxel_data_path=cfg["data"]["mouse_voxel_data_path"],
+    human_voxel_data_path=cfg["data"]["human_voxel_data_path"],
+    mouse_region_data_path=cfg["data"]["mouse_region_data_path"],
+    human_region_data_path=cfg["data"]["human_region_data_path"],
+    mouse_labelcol=cfg["data"]["mouse_labelcol"],
+    human_labelcol=cfg["data"]["human_labelcol"],
+    train_bsize=cfg["data"]["train_bsize"],
+    valid_bsize=cfg["data"]["valid_bsize"],
+    num_workers=cfg["data"]["num_workers"],
+    )
 
 
     logger = TensorBoardLogger(save_dir=exp_root)

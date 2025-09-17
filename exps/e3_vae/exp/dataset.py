@@ -275,7 +275,8 @@ class MouseHumanDataModule(pl.LightningDataModule):
         seed: int,
         mouse_voxel_data_path: str,
         human_voxel_data_path: str,
-        autism_voxel_data_path: str,
+        mouse_region_data_path: str,
+        human_region_data_path: str,
         mouse_labelcol: str,
         human_labelcol: str,
         train_bsize: int,
@@ -287,7 +288,8 @@ class MouseHumanDataModule(pl.LightningDataModule):
         self.seed = seed
         self.mouse_voxel_data_path = mouse_voxel_data_path
         self.human_voxel_data_path = human_voxel_data_path
-        self.autism_voxel_data_path = autism_voxel_data_path
+        self.mouse_region_data_path = mouse_region_data_path
+        self.human_region_data_path = human_region_data_path
         self.mouse_labelcol = mouse_labelcol
         self.human_labelcol = human_labelcol
         self.train_bsize = train_bsize
@@ -296,6 +298,7 @@ class MouseHumanDataModule(pl.LightningDataModule):
 
     def setup(self, stage: str):
         # Assign train/val datasets for use in dataloaders
+        
         full_ds = GeneDataset(
             data_path=self.mouse_voxel_data_path,
             intersct_data_path=self.human_voxel_data_path,

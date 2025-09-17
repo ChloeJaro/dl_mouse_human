@@ -104,7 +104,7 @@ class LitNet_w(pl.LightningModule):
         self.hidden2mu = nn.Linear(encoder_layers[-1], latent_dim)
         self.hidden2log_var = nn.Linear(encoder_layers[-1], latent_dim)
 
-        self.log_scale = nn.Parameter(torch.Tensor([0.0]))
+        self.log_scale = nn.Parameter(torch.Tensor([-1.0])) # Initialized to a small value to avoid large initial reconstruction error / drifting
 
         self.decoder = MLP(
             in_channels=latent_dim,
@@ -163,10 +163,20 @@ class LitNet_w(pl.LightningModule):
         eps = torch.randn_like(std)
         return mu + eps * std
 
+    def kl_anneal_function(self, epoch, cycle_epochs, kl_start, kl_max):
+        """KL annealing function"""
+        cycle = np.floor(1 + epoch / cycle_epochs)
+        x = np.abs(epoch / cycle_epochs - 2 * cycle + 1)
+        kl_weight = kl_start + (kl_max - kl_start) * (1 - x)
+        if kl_weight > kl_max:
+            kl_weight = kl_max
+        return kl_weight
+
     def forward(self, x):
         latent = self.encoder(x)
         mu = self.hidden2mu(latent)
         logvar = self.hidden2log_var(latent)
+        logvar = torch.clamp(logvar, min=-10, max=10)
 
         std = torch.exp(logvar / 2)
 
@@ -192,7 +202,9 @@ class LitNet_w(pl.LightningModule):
         class_weight = self.hparams.loss["class_weight"]
         reconst_weight = self.hparams.loss["reconst_weight"]
         l1_weight = self.hparams.loss["l1_weight"]
-
+        # kl_weight = self.hparams.loss["kl_weight"]
+        kl_weight = self.kl_anneal_function(self.current_epoch, self.hparams.loss["kl_cycle_epochs"], self.hparams.loss["kl_start"], self.hparams.loss["kl_max"])
+        
 
         """if class_weight > 0:
             loss += class_weight*F.cross_entropy(class_o, y, weight=Tensor(self.w).to(self.device))
@@ -233,7 +245,7 @@ class LitNet_w(pl.LightningModule):
         class_weight = self.hparams.loss["class_weight"]
         reconst_weight = self.hparams.loss["reconst_weight"]
         l1_weight = self.hparams.loss["l1_weight"]
-        kl_weight = self.hparams.loss["kl_weight"]
+        kl_weight = self.kl_anneal_function(self.current_epoch, self.hparams.loss["kl_cycle_epochs"], self.hparams.loss["kl_start"], self.hparams.loss["kl_max"])
 
         """if class_weight > 0:
             loss += class_weight*F.cross_entropy(class_o, y)
@@ -248,9 +260,6 @@ class LitNet_w(pl.LightningModule):
         # Reconstruction loss
         reconst_loss = self.gaussian_likelihood(decoder_o, self.log_scale, x)
 
-        # expectation under z of the kl divergence between q(z|x) and
-        #a standard normal distribution of the same shape
-        #KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         kl = self.kl_divergence(z, mu, std)
 
         elbo = kl * kl_weight - reconst_loss 

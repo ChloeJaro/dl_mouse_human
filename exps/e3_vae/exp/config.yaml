@@ -69,22 +69,23 @@ model:
     class_weight: 1.
     reconst_weight: 1.
     l1_weight: 1.
-    kl_weight: 0.001
+    kl_start: 0.000
+    kl_max: 0.02
+    kl_cycle_epochs: 50
   onecycle_lr_scheduler:
     max_lr: 1e-5
     cycle_momentum: false
 
 data:
   mouse_voxel_data_path: data/mouse_human/genes/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
-  human_voxel_data_path: data/mouse_human/Antoine/human_expression.csv
-  autism_voxel_data_path: data/mouse_human/Antoine/mouse_expression.csv
+  human_voxel_data_path: Human_2mm_voxel_expression_matrix.csv
   mouse_region_data_path: data/mouse_human/data.ign/MouseExpressionMatrix_ROI_Region67_scaled.csv
-  human_region_data_path: data/mouse_human/data.ign/HumanExpressionMatrix_ROI_Region88_scaled.csv
+  human_region_data_path: data/mouse_human/data.ign/human_dense_maps_parcellated_scaled.csv
   coronal_maskcoronal_path: data/mouse_human/genes/MouseExpressionMatrix_voxel_coronal_maskcoronal_log2_grouped_imputed_labelled_scaled.csv
   coronal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_coronal_masksagittal_CV_log2_imputed_labelled.csv
   sagittal_masksagittal_path: data/mouse_human/data.ign/MouseExpressionMatrix_voxel_sagittal_masksagittal_CV_log2_imputed_labelled.csv
   mouse_labelcol: Region67
-  human_labelcol: Region88
+  human_labelcol: Region
   train_bsize: 64
   valid_bsize: 64
   num_workers: 4
